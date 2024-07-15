@@ -422,7 +422,7 @@ void admin_menu()
         {
             cout << "Logging Out" << endl;
             displayMenu();
-            break; // Exit the loop after logging out
+            break;
         } 
         else 
         {
@@ -515,7 +515,7 @@ void admin_update()
         else if (choice == "4") 
         {
             admin_menu();
-            break; // Exit the loop after logging out
+            break;
         } 
         else 
         {
@@ -600,7 +600,7 @@ void edit_item_name(const string& category)
     {
         if (item.id == item_id) {
             cout << "Enter the new name: ";
-            cin.ignore(); // To ignore the newline character left in the buffer
+            cin.ignore(); 
             getline(cin, new_name);
             item.name = new_name;
             cout << "Item name updated successfully." << endl;
