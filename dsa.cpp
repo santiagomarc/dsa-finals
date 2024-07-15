@@ -372,13 +372,184 @@ void check_credentials (const string& username) {
 
 }
 
+void admin_menu();
 
+void admin_login() 
+{
+    string username;
+    string password;
 
-//adminlogin
-//adminmenu
+    cout << "Username: ";
+    cin >> username;
+    cout << "Password: ";
+    cin >> password;
+
+    if (username == "admin" && password == "adminpass") 
+    {
+        cout << "\nADMIN LOGIN SUCCESSFUL! \n" << endl;
+        admin_menu();
+    } 
+    else 
+    {
+        cout << "Please put the correct information" << endl;
+    }
+}
+
+void admin_update_menu();
+void update_price();
+void update_stock();
+void add_new_food();
+
+void admin_menu() 
+{
+    string choice;
+
+    cout << "Choose an option:" << endl;
+    cout << "1. Update menu" << endl;
+    cout << "2. Update price" << endl;
+    cout << "3. Update stock" << endl;
+    cout << "4. Add new food" << endl;
+    cout << "5. Logout" << endl;
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    while (true) 
+    {
+        if (choice == "1") 
+        {
+            admin_update_menu();
+        } 
+        else if (choice == "2") 
+        {
+            update_price();
+        } 
+        else if (choice == "3") 
+        {
+            update_stock();
+        } 
+        else if (choice == "4") 
+        {
+            add_new_food();
+        } 
+        else if (choice == "5") 
+        {
+            cout << "Logging Out" << endl;
+            displayMenu();
+            break;
+        } 
+        else 
+        {
+            cout << "Invalid choice. Please enter a number between 1 and 5: ";
+            cin >> choice;
+        }
+    }
+}
+
+void update_price() 
+{
+    string category;
+    int id;
+    double new_price;
+
+    cout << "Enter the category (burgers, fries, salads, drinks, desserts): ";
+    cin >> category;
+    cout << "Enter the ID of the item you want to update (1 - 5): ";
+    cin >> id;
+    cout << "Enter the new price: ";
+    cin >> new_price;
+
+    for (auto &item : menu[category]) 
+    {
+        if (item.id == id) 
+        {
+            item.price = new_price;
+            cout << "Item price updated successfully." << endl;
+            admin_menu();
+        }
+    }
+    cout << "Item not found." << endl;
+    admin_menu();
+}
+
+void update_stock() 
+{
+    string category;
+    int id;
+    int new_stock;
+
+    cout << "Enter the category (burgers, fries, salads, drinks, desserts): ";
+    cin >> category;
+    cout << "Enter the ID of the item you want to update: ";
+    cin >> id;
+    cout << "Enter the new stock quantity: ";
+    cin >> new_stock;
+
+    for (auto &item : menu[category]) 
+    {
+        if (item.id == id) 
+        {
+            item.quantity = new_stock;
+            cout << "Item stock updated successfully." << endl;
+            admin_menu();
+        }
+    }
+    cout << "Item not found." << endl;
+}
+
+void add_new_food() {
+    string category;
+    int id;
+    string name;
+    int quantity;
+    double price;
+
+    cout << "Enter the category (burgers, fries, salads, drinks, desserts): ";
+    cin >> category;
+    cout << "Enter the new ID: ";
+    cin >> id;
+    cout << "Enter the new name: ";
+    cin.ignore();
+    getline(cin, name);
+    cout << "Enter the quantity: ";
+    cin >> quantity;
+    cout << "Enter the price: ";
+    cin >> price;
+
+    menu[category].push_back({id, name, quantity, price});
+    cout << "New food item added successfully." << endl << endl;
+    admin_menu();
+}
+
+void admin_update_menu() 
+{
+    string category;
+    int id;
+    string new_name;
+
+    cout << "Enter the category (burgers, fries, salads, drinks, desserts): ";
+    cin >> category;
+    cout << "Enter the ID of the item you want to update: ";
+    cin >> id;
+    cout << "Enter the new name: ";
+    cin.ignore(); 
+    getline(cin, new_name);
+
+    for (auto &item : menu[category]) 
+    {
+        if (item.id == id) 
+        {
+            item.name = new_name;
+            cout << "Item name updated successfully." << endl;
+            admin_menu();
+        }
+    }
+
+    cout << "Item not found." << endl;
+}
+
 
 
 int main () {
-    //user_menu(user);
+    admin_login();
     return 0;
 }
