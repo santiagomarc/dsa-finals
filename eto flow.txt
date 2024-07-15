@@ -7,7 +7,7 @@ in registeruser function:
 
 username should be at least 4 char
 password should be at least 8 char
-phone number should be exactly (will be called out as e-wallet number for the receipt)
+phone number should be exactly 11 digits (will be called out as e-wallet number for the receipt)
 address (will be called out as delivery place for the receipt)
 user balance will be initialized to 0
 
@@ -33,12 +33,12 @@ then after choosing a specific item, they will be asked how many quantiy of that
 5. check credentials (gives a print out of the users' password, phone num, address, and balance, but ill take care of this)
 6. logout (goes back to main menu, if user has items in their cart, they will be gone when upon logging out)
 ---------------------------------
-adminmenu function:
+//adminmenu function:
 admin username is fixed as "admin"
 admin password is fixed as "adminpass"
 after logging in, admin will go to adminupdate function
 
-//adminupdate func 
+//adminupdate function: 
 upon logging in of admin, admin can choose whether to 
 1. edit number of item stocks
 2. edit price of an item
@@ -55,7 +55,7 @@ upon choosing, each category will be shown its own menu, for example we have 5 c
 (last number to go back to admin update)
 
 then if admin chose a menu they will see items with its name, quantity, and price
-each item should have its index, name, stocks, and price, so the data structure to be used here must be flexible!!!
+each item should have its index, name, stocks, and price, so the data structure to be used here must be flexible
 
 ex.(for burger category)
 =========================================
