@@ -59,7 +59,10 @@
   "files.associations": {
     "dsa": "c",
     "stdexcept": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "ostream": "cpp",
+    "iosfwd": "cpp",
+    "iomanip": "cpp"
   },
   "C_Cpp.default.compilerPath": "C:\\mingw64\\bin\\g++.exe"
 }
