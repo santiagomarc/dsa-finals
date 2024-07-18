@@ -5,24 +5,50 @@
 #include <limits> 
 #include <vector> //data structure para sa menu, cart
 #include <algorithm> // all_of
+#include <stdexcept> // For std::invalid_argument
+#include <iomanip>   // For std::setprecision and std::fixed
+#include <fstream>
+#include <Windows.h>
 
 using namespace std;
 
 void userlogin();
 void user_menu(const string& username);
 void addUserCart(const string& username);
+void editUserCart(const string& username);
+void proceedOrder(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change);
+void displayOrderSummary(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change);
+void top_up(const string& username);
+void check_credentials(const string& username);
+void saveUserAccounts();
+void loadUserAccounts();
 int main();
 
-void clearInputBuffer() {
+void clearInputBuffer() 
+{
     cin.clear(); // Clear the error flag
-    while (cin.get() != '\n'); // Ignore remaining input
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore remaining input
 }
+void setTextColor(int colorCode) 
+{
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), colorCode);
+}
+void resetTextColor() 
+{
+    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7);
+}
+
+float cashAmount = 0.0;
+float change = 0.0;
+int paymentChoice;
+float totalCost = 0.0;
+
 
 struct CartItem {
     int id;
     string name;
     int quantity;
-    double price;
+    float price;
 };
 
 map<string, vector<CartItem>> menu = {
@@ -63,83 +89,63 @@ map<string, vector<CartItem>> menu = {
     }}
 };
 
-void displayMenu() {
-    cout << "Choose a category:" << endl;
-    cout << "1. Burgers" << endl;
-    cout << "2. Fries" << endl;
-    cout << "3. Salads" << endl;
-    cout << "4. Drinks" << endl;
-    cout << "5. Desserts" << endl;
-
-    int choice;
-    cout << "Enter your choice (1-5): ";
-    cin >> choice;
-
-    switch (choice) {
-        case 1:
-            cout << "Burgers Menu:" << endl;
-            for (const auto& item : menu["burgers"]) {
-                cout << item.id << ". " << item.name << " - $" << item.price << endl;
-            }
-            break;
-        case 2:
-            cout << "Fries Menu:" << endl;
-            for (const auto& item : menu["fries"]) {
-                cout << item.id << ". " << item.name << " - $" << item.price << endl;
-            }
-            break;
-        case 3:
-            cout << "Salads Menu:" << endl;
-            for (const auto& item : menu["salads"]) {
-                cout << item.id << ". " << item.name << " - $" << item.price << endl;
-            }
-            break;
-        case 4:
-            cout << "Drinks Menu:" << endl;
-            for (const auto& item : menu["drinks"]) {
-                cout << item.id << ". " << item.name << " - $" << item.price << endl;
-            }
-            break;
-        case 5:
-            cout << "Desserts Menu:" << endl;
-            for (const auto& item : menu["desserts"]) {
-                cout << item.id << ". " << item.name << " - $" << item.price << endl;
-            }
-            break;
-        default:
-            cout << "Invalid choice. Please choose a valid category." << endl;
-            break;
-    }
-}
-
-
 class Cart {
-private:
+    private:
     vector<CartItem> usercart;
-
-public:
+    
+    public:
     void addToCart(const CartItem& item) {
+    auto it = find_if(usercart.begin(), usercart.end(), [&item](const CartItem& cartItem) {
+        return cartItem.name == item.name;
+    });
+
+    if (it != usercart.end()) {
+        it->quantity += item.quantity; //add quantity pag exist sa cart
+    } else {
         usercart.push_back(item);
     }
-
+}
     void deleteFromCart(int id) {
         auto it = remove_if(usercart.begin(), usercart.end(), [id](const CartItem& item) { return item.id == id; });
-        usercart.erase(it, usercart.end());
+        if (it != usercart.end()) {
+            usercart.erase(it, usercart.end());
+            cout << "Item removed from cart successfully." << endl;
+        } else {
+            cout << "Item not found in the cart." << endl;
+        }
+
     }
 
-    void editCart(int id, int newQuantity) {
-        for (auto& item : usercart) {
-            if (item.id == id) {
-                item.quantity = newQuantity;
-                break;
-            }
+    void editCart(int index, int newQuantity) {
+            if (index >= 0 && index < usercart.size()) {
+            usercart[index].quantity = newQuantity;
+        } else {
+            cout << "Invalid item index." << endl;
         }
     }
 
-    void viewCart() const {
-        for (const auto& item : usercart) {
-            cout << item.id << ". " << item.name << " - " << item.quantity << " x $" << item.price << endl;
-        }
+    bool viewCart(string& cartContent) const {
+    if (usercart.empty()) {
+        cartContent = "Your cart is empty!";
+        return true; //EMPTY
+    }
+    
+    cartContent = "";
+    int index = 1;
+    for (const auto& item : usercart) 
+    {
+        cartContent += to_string(index) + ". " + item.name + " - " + to_string(item.quantity) + " x P" + to_string(item.price) + "\n";
+        index++;
+    }
+    return false; // NOT EMPTY
+    }
+
+    void clearCart() {
+        usercart.clear();
+    }
+
+    vector<CartItem>& getUserCart() {
+        return usercart;
     }
 };
 
@@ -147,11 +153,91 @@ struct UserDetails {
     string password;
     string phoneNumber;
     string address;
-    double balance = 0;
+    float balance = 0;
     Cart cart;
 };
 
 map <string, UserDetails> user_accounts; 
+
+void saveUserAccounts() {
+    ofstream outFile("user.txt");
+
+    if (!outFile) {
+        cerr << "Error opening file for writing!" << endl;
+        return;
+    }
+
+    for (map<string, UserDetails>::const_iterator it = user_accounts.begin(); it != user_accounts.end(); ++it) {
+        outFile << it->first << "," << it->second.password << ","
+                << it->second.phoneNumber << "," << it->second.address << ","
+                << it->second.balance << endl;
+    }
+    outFile.close();
+}
+
+void displayMenu() {
+    int choice;
+    do { 
+        cout << "Choose a category:" << endl;
+        cout << "1. Burgers" << endl;
+        cout << "2. Fries" << endl;
+        cout << "3. Salads" << endl;
+        cout << "4. Drinks" << endl;
+        cout << "5. Desserts" << endl;
+        cout << "6. Go back to Main Menu" << endl;
+        try {
+            cout << "Enter the number of your choice: ";
+            cin >> choice;
+            if (cin.fail()) {
+                clearInputBuffer();
+                throw invalid_argument("Please Input a valid number!");
+            }
+
+            switch (choice) {
+                case 1:
+                    cout << "Burgers Menu:" << endl;
+                    for (const auto& item : menu["burgers"]) {
+                        cout << item.id << ". " << item.name << " - $" << item.price << endl;
+                    }
+                    break;
+                case 2:
+                    cout << "Fries Menu:" << endl;
+                    for (const auto& item : menu["fries"]) {
+                        cout << item.id << ". " << item.name << " - $" << item.price << endl;
+                    }
+                    break;
+                case 3:
+                    cout << "Salads Menu:" << endl;
+                    for (const auto& item : menu["salads"]) {
+                        cout << item.id << ". " << item.name << " - $" << item.price << endl;
+                    }
+                    break;
+                case 4:
+                    cout << "Drinks Menu:" << endl;
+                    for (const auto& item : menu["drinks"]) {
+                        cout << item.id << ". " << item.name << " - $" << item.price << endl;
+                    }
+                    break;
+                case 5:
+                    cout << "Desserts Menu:" << endl;
+                    for (const auto& item : menu["desserts"]) {
+                        cout << item.id << ". " << item.name << " - $" << item.price << endl;
+                    }
+                    break;
+                case 6:
+                    break;
+                default:
+                    cout << "******Invalid choice. Please choose a valid category******" << endl;
+                    break;
+            }
+        } catch (const invalid_argument& e) {
+            cout << "\n****************************" << endl;
+            cout << e.what() << endl;
+            cout << "****************************\n" << endl;
+        }
+    } while (choice != 6);
+    main();
+}
 
 void registerUser() {
     while (true) {
@@ -161,6 +247,7 @@ void registerUser() {
         string password;
         string phoneNumber;
         string address;
+        float balance = 0.0;
 
         cout << "Enter a username: ";
         cin >> username;
@@ -209,7 +296,10 @@ void registerUser() {
 
         UserDetails newUser = {password, phoneNumber, address, 0.0, Cart()};
         user_accounts[username] = newUser;
+        saveUserAccounts();
+        
         break;
+        main();
     }
 }
 
@@ -229,14 +319,14 @@ void userlogin() {
             cout << "\n***************************************" << endl;
             cout << "Username does not exist. Please try again." << endl;
             cout << "***************************************" << endl;
-            continue;
+            break;
         }
 
         if (user_accounts[username].password != password) {
             cout << "\n*************************************" << endl;
             cout << "Incorrect password. Please try again." << endl;
             cout << "*************************************" << endl;
-            continue;
+            break;
         }
 
         cout << "\n-------------------------------" << endl;
@@ -245,16 +335,18 @@ void userlogin() {
         user_menu(username);
         break;
     }
+    main();
 }
 
 
 void user_menu(const string& username) {
-    while (true) {
+    int choice;
+    while (choice != 6) {
         try {
-            cout << "Logged in as " << username << " ---- Balance: $" << user_accounts[username].balance << endl;
+            cout << "Logged in as " << username << " ---- Balance: P " << user_accounts[username].balance << endl;
             cout << "1. Add to cart" << endl;
-            cout << "2. Edit cart" << endl;
-            cout << "3. Top-up Account" << endl;
+            cout << "2. Edit your cart" << endl;
+            cout << "3. Top-up Ezbyte Wallet" << endl;
             cout << "4. View Cart and Proceed to Payment" << endl;
             cout << "5. Check Credentials" << endl;
             cout << "6. Log out" << endl << endl;
@@ -272,23 +364,23 @@ void user_menu(const string& username) {
                     addUserCart(username);
                     break;
                 case 2:
-                    //user_accounts[username].cart.addToCart(item);
+                    editUserCart(username);
                     break;
                 case 3:
-                    //top_up(username);
+                    top_up(username);
                     break;
                 case 4:
-                    //user_accounts[username].cart.addToCart(item);
+                    proceedOrder(username, paymentChoice, totalCost, cashAmount, change);
                     break;
                 case 5:
-                    //check_credentials(username);
+                    check_credentials(username);
                     break;
                 case 6:
                     cout << "\n----------------------------------" << endl;
                     cout << "  User: '" << username << "' has logged out!" << endl;
                     cout << "----------------------------------\n" << endl;
                     main();
-                    return;
+                    break;
                 default:
                     cout << "\n***************************" << endl;
                     cout << "Please input a valid choice" << endl;
@@ -300,6 +392,7 @@ void user_menu(const string& username) {
             cout << "***************************\n" << endl;
         }
     }
+    main();
 }
 
 void addUserCart (const string& username) {
@@ -322,11 +415,11 @@ void addUserCart (const string& username) {
     }
 
     string selectedCategory = categoryMap[ctgChoice];
-    const vector<CartItem>& selectedCategoryitems = menu[selectedCategory];
+    vector<CartItem>& selectedCategoryitems = menu[selectedCategory];
 
     cout << "---SELECT AN ITEM---\n";
     for (const auto& item : selectedCategoryitems) {
-        cout << item.id << ". " << item.name << " - $" << item.price << " (" << item.quantity << " in stock)\n";
+        cout << item.id << ". " << item.name << " - P" << item.price << " (" << item.quantity << " in stock)\n";
 
     }
     int itemId;
@@ -339,46 +432,500 @@ void addUserCart (const string& username) {
         return;
     }
 
-    int quantity;
-    cout << "Enter the quantity of the item you want to order:";
-    cin >> quantity;
-
-    if (quantity <= 0 || quantity > it->quantity) {
-        cout << "Invalid quantity entered.\n";
+    if (it->quantity == 0) {
+        cout << "Item is out of stock and cannot be ordered.\n";
         return;
     }
+
+    int quantity;
+    do {   // Change item.quantity to item.stock
+        cout << "Enter the quantity of the item you want to order:";
+        cin >> quantity;
+        if (quantity <= 0 || quantity > it->quantity) {
+            cout << "Invalid quantity entered! " << it->quantity << " stocks left for " << it->name << "!\n";
+        }
+    } while (quantity <= 0 || quantity > it->quantity);
 
     CartItem selectedItem = *it;
     selectedItem.quantity = quantity;
 
     user_accounts[username].cart.addToCart(selectedItem);
+    it->quantity -= quantity; // Decrement stock
     cout << "Item added to cart successfully.\n";
+    return;
 }
 
-void deleteUserCart (const string& username) {
-    user_accounts[username].cart.viewCart();
+void editUserCart(const string& username) {
+    // Step 1: Display the user's cart
+    string cartContent;
+    bool cartEmpty = user_accounts[username].cart.viewCart(cartContent);
 
-    // for (const auto& item : user_accounts[username].cart.usercart ) {
+    if (cartEmpty) {
+        cout << cartContent << endl;  
+        return; // if empty nothing to delete
+    } else {
+        cout << "\n------------------- Your Cart -------------------" << endl;
+        cout << cartContent << endl;
+        cout << "-------------------------------------------------" << endl;
+    }
 
-    // }
+    int itemId;
+    cout << "Enter the index of the item you want to edit: ";
+    cin >> itemId;
 
+    if (itemId < 1 || itemId > user_accounts[username].cart.getUserCart().size()) {
+        cout << "Invalid item index. Please enter a valid index." << endl;
+        return;
+    }
 
+    cout << "Do you want to: "<< endl;
+    cout << "1. Edit item quantity" << endl;
+    cout << "2. Delete item from your cart" << endl;
+    cout << "3. Go back to user menu\n" << endl;
+    int choice;
+    cin >> choice;
+
+    if (choice == 1) {// Edit 
+        int newQuantity;
+        cout << "Enter the new quantity: ";
+        cin >> newQuantity;
+
+        if (newQuantity <= 0) {
+            cout << "Invalid quantity entered. Please enter a positive value." << endl;
+            return;
+        }
+
+        user_accounts[username].cart.editCart(itemId - 1, newQuantity);
+        cout << "Item quantity updated successfully.\n";
+
+    } else if (choice == 2) {
+        auto& userCart = user_accounts[username].cart.getUserCart();
+        userCart.erase(userCart.begin() + (itemId - 1));
+        cout << "Item removed from cart successfully.\n";
+    } else if (choice == 3) {
+        return;
+    } else {
+        cout << "Invalid choice. Please enter 1 or 2.\n";
+        return;
+    }
 }
+
+void proceedOrder(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change) {
+    // Step 1: Display the user's cart
+    string cartContent;
+    bool cartEmpty = user_accounts[username].cart.viewCart(cartContent);
+
+    if (cartEmpty) {
+        cout << "Your cart is empty. Please add items to proceed with your order.\n";
+        return;
+    }
+
+    // Step 3: Calculate total cost
+    const vector<CartItem>& userCart = user_accounts[username].cart.getUserCart();
+    for (const auto& item : userCart) {
+        totalCost += item.price * item.quantity;
+    }
+
+    cout << "\n------------------- Your Cart -------------------" << endl;
+    cout << cartContent;
+    cout << "\nTotal cost of your order: " << totalCost << " pesos" << endl;
+    cout << "-------------------------------------------------" << endl;
+
+    // Step 2: Confirm the order
+    string confirm;
+    cout << "Proceed with this order? (yes/no): ";
+    cin >> confirm;
+
+    if (confirm != "yes") {
+        cout << "Order canceled. Returning to user menu.\n";
+        totalCost = 0.0;
+        return;
+    }
+
+    cout << "\nSelect payment method:" << endl;
+    cout << "1. Ezbyte Wallet (Current balance: " << user_accounts[username].balance << " pesos)" << endl;
+    cout << "2. Cash-on-Delivery" << endl;
+    cout << "Enter your choice: ";
+    cin >> paymentChoice;
+
+
+    if (paymentChoice == 1) {
+        if (user_accounts[username].balance < totalCost) {
+            cout << "Insufficient balance. Please top-up your Ezbyte Wallet.\n";
+            return;
+        }
+        user_accounts[username].balance -= totalCost;
+        cashAmount = totalCost;
+        change = 0.0;
+        cout << "Payment successful via Ezbyte Wallet.\n";
+
+    } else if (paymentChoice == 2) {
+        do {
+            cout << "Enter cash amount: ";
+            cin >> cashAmount;
+
+            if (cashAmount < totalCost) {
+                cout << "Insufficient amount. Please enter the exact amount.\n";
+            }
+        } while (cashAmount < totalCost);
+
+        change = cashAmount - totalCost;
+        cout << "Payment successful via Cash-on-Delivery. Your change: " << change << " pesos" << endl;
+
+    } else {
+        cout << "Invalid payment method selected.\n";
+        return;
+    }
+
+    displayOrderSummary(username, paymentChoice, totalCost, cashAmount, change);
+    user_accounts[username].cart.clearCart();
+    saveUserAccounts();
+}
+
+void displayOrderSummary(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change) {
+    // Display user details from user_accounts directly
+    cout << "\n\n";
+    setTextColor(6);
+    cout << "               ======================================= Order Summary ======================================\n";
+    resetTextColor();
+    cout << "                  Customer Name: " << username << "\n\n";
+    cout << "                  Delivery Address: " << user_accounts[username].address << "\n\n";
+    cout << "                  Phone Number: " << user_accounts[username].phoneNumber << "\n\n";
+    cout << "                  Payment Mode: " << paymentChoice << ". " << (paymentChoice == 1 ? "Ezbyte Wallet" : "Cash-on-Delivery") << "\n\n";
+    cout << "                  Payment Amount: " << cashAmount << " Pesos\n\n";
+    cout << "                  Change: " << change << " Pesos\n\n";
+
+    setTextColor(6);
+    cout << "                                                       Ordered Items                                      \n";
+    cout << "               ===========================================================================================" << endl;
+    resetTextColor();
+    cout << "                                                                                                          \n";
+
+    // Display user's cart using viewCart method
+    string cartContent;
+    bool cartEmpty = user_accounts[username].cart.viewCart(cartContent);
+
+    if (cartEmpty) {
+        cout << "Error: Cart is empty.\n";
+        return;
+    }
+
+    cout << cartContent;
+
+    cout << "                                                                                                          \n";
+    cout << "                                                                                                          \n";
+    cout << fixed << setprecision(2);
+    cout << "                                                Total cost: " << totalCost << " Pesos\n";
+    setTextColor(6);
+    cout << "               ===========================================================================================\n\n\n";
+    resetTextColor();
+}
+
 void top_up (const string& username) {
+    try {
+        string input;
+        cout << "\n-----Top-up Ezbyte Wallet-----\n";
+        cout << "Enter the amount to top up (leave blank to cancel transcation): ";
+        getline(cin >> ws, input);  //allow blank input
 
+        if (cin.fail()) {
+                clearInputBuffer();
+                throw invalid_argument("Invalid input. Please enter a valid number.");
+            }
+
+        if (input.empty()) {
+            cout << "\n--------------------------------------------------------" << endl;
+            cout << "                TRANSACTION CANCELLED" << endl;
+            cout << "--------------------------------------------------------\n" << endl;
+            return;
+
+        }
+        float amount = stof(input);
+        if (amount > 0){
+            user_accounts[username].balance += amount; 
+            saveUserAccounts();
+
+            cout << fixed << setprecision(2);
+            cout << "\n------------------------------------------------------" << endl;
+            cout << "      Top-up successful. New balance: P " << user_accounts[username].balance << endl;
+            cout << "------------------------------------------------------\n"<< endl;
+        } else {
+            cout << " \nInvalid amount. Please enter a positive value.\n" << endl;
+            return;
+        }
+    } catch (const invalid_argument& e) {
+        cout << "\n***************************" << endl;
+        cout << "Invalid input. Please enter a valid amount." << endl;
+        cout << "***************************\n" << endl;
+    } 
 }
 
 void check_credentials (const string& username) {
+    cout << "\n------------------- User Information -------------------" << endl;
+    cout << "Username: " << username << endl;
+    cout << "Password: " << user_accounts[username].password << endl;
 
+    string cartContent;
+    bool isEmpty = user_accounts[username].cart.viewCart(cartContent);
+
+    if (!isEmpty) {
+        cout << cartContent << endl; // Display "Your cart is empty!" message
+    } else {
+        cout << "User's Cart is empty!" << endl;
+    }
+
+    cout << "Balance: " << fixed << setprecision(2) << user_accounts[username].balance << endl;
+    cout << "-------------------------------------------------------" << endl;
+
+}
+void loadUserAccounts() {
+    ifstream inFile("user.txt");
+
+    if (!inFile) {
+        cerr << "Error opening file for reading!" << endl;
+        return;
+    }
+
+    string line;
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        string username, password, phoneNumber, address;
+        float balance;
+
+        getline(ss, username, ',');
+        getline(ss, password, ',');
+        getline(ss, phoneNumber, ',');
+        getline(ss, address, ',');
+        ss >> balance;
+
+        user_accounts[username] = {password, phoneNumber, address, balance};
+    }
+
+    inFile.close();
+}
+
+struct itemNode {
+    int index;
+    string name;
+    int stock;
+    float price;
+    struct itemNode *next;
+};
+
+class linkedmenu {
+private:
+    itemNode *head, *tail;
+
+public:
+    linkedmenu() : head(nullptr), tail(nullptr) {}
+
+    void addItem(int index, const string& name, int stock, float price) {  // Changed to float
+        itemNode* newItem = new itemNode{index, name, stock, price, nullptr};
+        if (!head) {
+            head = newItem;
+            tail = newItem;
+        } else {
+            tail->next = newItem;
+            tail = newItem;
+        }
+    }
+
+    void editStock(int index, int newStock, map<string, vector<CartItem>>& menu, const string& category) {
+        itemNode* temp = head;
+        while (temp) {
+            if (temp->index == index) {
+                temp->stock = newStock;
+                for (auto& item : menu[category]) {
+                    if (item.id == index) {
+                        item.quantity = newStock;
+                        cout << "Stock for " << item.name << " updated to " << newStock << "." << endl;
+                        return;
+                    }
+                }
+            }
+            temp = temp->next;
+        }
+        cout << "Item not found." << endl;
+    }
+
+    void editPrice(int index, float newPrice, map<string, vector<CartItem>>& menu, const string& category) {  // Changed to float
+        itemNode* temp = head;
+        while (temp) {
+            if (temp->index == index) {
+                temp->price = newPrice;
+                for (auto& item : menu[category]) {
+                    if (item.id == index) {
+                        item.price = newPrice;
+                        cout << "Price for " << item.name << " updated to " << newPrice << " pesos." << endl;
+                        return;
+                    }
+                }
+            }
+            temp = temp->next;
+        }
+        cout << "Item not found." << endl;
+    }
+
+    void editName(int index, const string& newName, map<string, vector<CartItem>>& menu, const string& category) {
+        itemNode* temp = head;
+        while (temp) {
+            if (temp->index == index) {
+                temp->name = newName;
+                for (auto& item : menu[category]) {
+                    if (item.id == index) {
+                        cout << "Name for " << item.name << " updated to " << newName << "." << endl;
+                        item.name = newName;
+                        return;
+                    }
+                }
+            }
+            temp = temp->next;
+        }
+        cout << "Item not found." << endl;
+    }
+};
+
+map<string, linkedmenu> menuLists;
+
+void initializeMenu(const map<string, vector<CartItem>>& menu) {
+    for (const auto& category : menu) {
+        linkedmenu list;
+        for (const auto& item : category.second) {
+            list.addItem(item.id, item.name, item.quantity, item.price);
+        }
+        menuLists[category.first] = list;
+    }
+}
+
+void adminUpdate() {
+    string category;
+    int choice, index, newStock;
+    double newPrice;
+    string newName;
+
+    do {
+        cout << " [burgers, fries, salads, drinks, desserts]\n";
+        cout << "\nEnter the name of your chosen category to edit: ";
+        cin >> category;
+
+        if (menuLists.find(category) == menuLists.end()) {
+            cout << "Category not found.\n";
+            continue;
+        }
+        
+        cout << "\n======Admin Update Menu=====" << endl;
+        cout << "1. Edit Number of Item Stocks" << endl;
+        cout << "2. Edit Price of an Item" << endl;
+        cout << "3. Edit Item Name" << endl;
+        cout << "4. Back to Main Menu" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch(choice) {
+            case 1:
+                cout << "Enter item index: ";
+                cin >> index;
+                cout << "Enter new stock amount: ";
+                cin >> newStock;
+                menuLists[category].editStock(index, newStock, menu, category);
+                break;
+            case 2:
+                cout << "Enter item index: ";
+                cin >> index;
+                cout << "Enter new price: ";
+                cin >> newPrice;
+                menuLists[category].editPrice(index, newPrice, menu, category);
+                break;
+            case 3:
+                cout << "Enter item index: ";
+                cin >> index;
+                cout << "Enter new name: ";
+                cin >> newName;
+                menuLists[category].editName(index, newName, menu, category);
+                break;
+            case 4:
+                cout << "Returning to main menu.\n";
+                main();
+                break;
+            default:
+                cout << "Invalid choice. Please enter a valid option.\n";
+        }
+    } while (choice != 4);
 }
 
 
+void adminLogin() {
+    while (true) {
+        string username, password;
+        cout << "Enter admin username: ";
+        cin >> username;
+        cout << "Enter admin password: ";
+        cin >> password;
 
-//adminlogin
-//adminmenu
+        if (username == "admin" && password == "adminpass") {
+            cout << "Admin login successful.\n";
+            adminUpdate(); // Go to admin update menu
+            break;
+        } else {
+            cout << "\n*****Invalid admin credentials. Attempt to login denied*****\n" << endl;
+            continue;
+        }
+    }
+}
 
 
 int main () {
-    //user_menu(user);
+    initializeMenu(menu);
+    loadUserAccounts();
+
+    while (true)
+    {
+        try {
+            cout << "\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+            cout << "           Welcome to the EZBYTE Food Ordering System!" << endl;
+            cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << endl;
+            cout << "1. Register User" << endl;
+            cout << "2. Log in" << endl;
+            cout << "3. Admin Log in"  << endl;
+            cout << "4. Display Menu" << endl;
+            cout << "5. Exit Program\n" << endl;
+
+            int choice;
+            cout << "Enter your choice: ";
+            cin >> choice;
+
+            if (cin.fail()) {
+                clearInputBuffer();
+                throw invalid_argument("Invalid input. Please enter a valid number.");
+                continue;
+            }
+            cout << endl;
+
+            if (choice == 1) {
+                registerUser();
+            } else if (choice == 2) {
+                userlogin();
+            } else if (choice == 3) {
+                adminLogin();
+            } else if (choice == 4) {
+                displayMenu();
+            } else if (choice == 5) {
+                cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++" << endl;
+                cout << "      Thank you for using this EZBYTE Food Ordering System!" << endl;
+                cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n" << endl;
+                exit(1);
+            } else {
+                cout << "\n***************************" << endl;
+                cout << "Please input a valid option" << endl;
+                cout << "***************************\n" << endl;
+            }
+        }
+        catch (const invalid_argument& e) {
+        cout << "\n******************************************" << endl;
+        cout << e.what() << endl;
+        cout << "******************************************\n" << endl;
+        } 
+    }
     return 0;
 }
+
