@@ -3,10 +3,10 @@
 #include <map>
 #include <stdexcept>
 #include <limits> 
-#include <vector> //data structure para sa menu, cart
-#include <algorithm> // all_of
-#include <stdexcept> // For std::invalid_argument
-#include <iomanip>   // For std::setprecision and std::fixed
+#include <vector> 
+#include <algorithm> 
+#include <stdexcept>
+#include <iomanip>   
 #include <fstream>
 #include <Windows.h>
 
@@ -26,8 +26,8 @@ int main();
 
 void clearInputBuffer() 
 {
-    cin.clear(); // Clear the error flag
-    cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Ignore remaining input
+    cin.clear(); 
+    cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
 }
 void setTextColor(int colorCode) 
 {
@@ -100,7 +100,7 @@ class Cart {
     });
 
     if (it != usercart.end()) {
-        it->quantity += item.quantity; //add quantity pag exist sa cart
+        it->quantity += item.quantity;
     } else {
         usercart.push_back(item);
     }
@@ -127,7 +127,7 @@ class Cart {
     bool viewCart(string& cartContent) const {
     if (usercart.empty()) {
         cartContent = "Your cart is empty!";
-        return true; //EMPTY
+        return true; 
     }
     
     cartContent = "";
@@ -137,7 +137,7 @@ class Cart {
         cartContent += to_string(index) + ". " + item.name + " - " + to_string(item.quantity) + " x P" + to_string(item.price) + "\n";
         index++;
     }
-    return false; // NOT EMPTY
+    return false; 
     }
 
     void clearCart() {
@@ -438,7 +438,7 @@ void addUserCart (const string& username) {
     }
 
     int quantity;
-    do {   // Change item.quantity to item.stock
+    do { 
         cout << "Enter the quantity of the item you want to order:";
         cin >> quantity;
         if (quantity <= 0 || quantity > it->quantity) {
@@ -450,19 +450,18 @@ void addUserCart (const string& username) {
     selectedItem.quantity = quantity;
 
     user_accounts[username].cart.addToCart(selectedItem);
-    it->quantity -= quantity; // Decrement stock
+    it->quantity -= quantity; 
     cout << "Item added to cart successfully.\n";
     return;
 }
 
 void editUserCart(const string& username) {
-    // Step 1: Display the user's cart
     string cartContent;
     bool cartEmpty = user_accounts[username].cart.viewCart(cartContent);
 
     if (cartEmpty) {
         cout << cartContent << endl;  
-        return; // if empty nothing to delete
+        return; 
     } else {
         cout << "\n------------------- Your Cart -------------------" << endl;
         cout << cartContent << endl;
@@ -485,7 +484,7 @@ void editUserCart(const string& username) {
     int choice;
     cin >> choice;
 
-    if (choice == 1) {// Edit 
+    if (choice == 1) {
         int newQuantity;
         cout << "Enter the new quantity: ";
         cin >> newQuantity;
@@ -511,7 +510,6 @@ void editUserCart(const string& username) {
 }
 
 void proceedOrder(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change) {
-    // Step 1: Display the user's cart
     string cartContent;
     bool cartEmpty = user_accounts[username].cart.viewCart(cartContent);
 
@@ -520,7 +518,6 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
         return;
     }
 
-    // Step 3: Calculate total cost
     const vector<CartItem>& userCart = user_accounts[username].cart.getUserCart();
     for (const auto& item : userCart) {
         totalCost += item.price * item.quantity;
@@ -531,7 +528,6 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
     cout << "\nTotal cost of your order: " << totalCost << " pesos" << endl;
     cout << "-------------------------------------------------" << endl;
 
-    // Step 2: Confirm the order
     string confirm;
     cout << "Proceed with this order? (yes/no): ";
     cin >> confirm;
@@ -583,7 +579,6 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
 }
 
 void displayOrderSummary(const string& username, int& paymentChoice, float& totalCost, float& cashAmount, float& change) {
-    // Display user details from user_accounts directly
     cout << "\n\n";
     setTextColor(6);
     cout << "               ======================================= Order Summary ======================================\n";
@@ -626,7 +621,7 @@ void top_up (const string& username) {
         string input;
         cout << "\n-----Top-up Ezbyte Wallet-----\n";
         cout << "Enter the amount to top up (leave blank to cancel transcation): ";
-        getline(cin >> ws, input);  //allow blank input
+        getline(cin >> ws, input);
 
         if (cin.fail()) {
                 clearInputBuffer();
@@ -669,7 +664,7 @@ void check_credentials (const string& username) {
     bool isEmpty = user_accounts[username].cart.viewCart(cartContent);
 
     if (!isEmpty) {
-        cout << cartContent << endl; // Display "Your cart is empty!" message
+        cout << cartContent << endl;
     } else {
         cout << "User's Cart is empty!" << endl;
     }
@@ -719,7 +714,7 @@ private:
 public:
     linkedmenu() : head(nullptr), tail(nullptr) {}
 
-    void addItem(int index, const string& name, int stock, float price) {  // Changed to float
+    void addItem(int index, const string& name, int stock, float price) {  
         itemNode* newItem = new itemNode{index, name, stock, price, nullptr};
         if (!head) {
             head = newItem;
@@ -748,7 +743,7 @@ public:
         cout << "Item not found." << endl;
     }
 
-    void editPrice(int index, float newPrice, map<string, vector<CartItem>>& menu, const string& category) {  // Changed to float
+    void editPrice(int index, float newPrice, map<string, vector<CartItem>>& menu, const string& category) { 
         itemNode* temp = head;
         while (temp) {
             if (temp->index == index) {
@@ -864,7 +859,7 @@ void adminLogin() {
 
         if (username == "admin" && password == "adminpass") {
             cout << "Admin login successful.\n";
-            adminUpdate(); // Go to admin update menu
+            adminUpdate();
             break;
         } else {
             cout << "\n*****Invalid admin credentials. Attempt to login denied*****\n" << endl;
