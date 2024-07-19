@@ -62,7 +62,10 @@
     "iostream": "cpp",
     "ostream": "cpp",
     "iosfwd": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "limits": "cpp",
+    "optional": "cpp",
+    "fstream": "cpp"
   },
   "C_Cpp.default.compilerPath": "C:\\mingw64\\bin\\g++.exe"
 }
