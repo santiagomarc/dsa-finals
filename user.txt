@@ -1,11 +1,4 @@
-adsda,sdasdasdasd,11111111111,dad,0
-asdasas,asdasdasdasd,12312312312,2123,0
-asdasd,sdsasdsxdas,12121212121,asdsad,0
-dweqweq,asdasdasd,12312312312,awsda,0
 haha,hahahaha,12121212121,bsu,0
-marc,marchaha,09663149626,bsu,4
+marc,santiago,09123456789,bsu,20
+mrqwe,q2eqweqw,12312312312,dsadas,0
 plspl,plsplspls,12345678910,bsu,0
-qweqwe,qewqweqwe,12312312312,wasdwasdasda,0
-qweqweqweqweqwe,qweqweqweqwe,12312312312,sadadsdasdad,0
-sdadsdaasd,asdasdasda,12312312312,sddwdsd,0
-tite,titetite,12345678910,wewewrwr,0

@@ -133,13 +133,18 @@ class Cart {
     
     cartContent = "";
     int index = 1;
+    ostringstream stream;
+    stream << fixed << setprecision(2);
     for (const auto& item : usercart) 
     {
-        cartContent += "\t\t\t\t     " + to_string(index) + ". " + item.name + " --- " + to_string(item.quantity) + "x --- P" + to_string(item.price) + "\n";
+        stream.str(""); // Clear the stream
+        stream << fixed << setprecision(2) << item.price; // Format price to 2 decimal places
+        cartContent += "\t\t\t\t     " + to_string(index) + ". " + item.name + " --- " + to_string(item.quantity) + "x --- P" + stream.str() + "\n";
         index++;
     }
     return false; 
     }
+
 
     void clearCart() {
         usercart.clear();
@@ -201,7 +206,7 @@ void displayMenu() {
                     cout << "\n\t\t\t\t\t===========================================" << endl;
                     cout << "\t\t\t\t\t                Burgers Menu:" << endl;
                     for (const auto& item : menu["burgers"]) {
-                        cout << "\t\t\t\t              "<<item.id << ". " << item.name << " - $" << item.price << endl;
+                        cout << "\t\t\t\t              "<<item.id << ". " << item.name << " - P" << item.price << endl;
                     }
                     cout << "\t\t\t\t\t===========================================" << endl;
                     resetTextColor();  
@@ -211,7 +216,7 @@ void displayMenu() {
                     cout << "\n\t\t\t\t\t===========================================" << endl;
                     cout << "\t\t\t\t\t                Fries Menu:" << endl;
                     for (const auto& item : menu["fries"]) {
-                        cout << "\t\t\t\t             "<<item.id << ". " << item.name << " - $" << item.price << endl;
+                        cout << "\t\t\t\t             "<<item.id << ". " << item.name << " - P" << item.price << endl;
                     }
                     cout << "\t\t\t\t\t===========================================" << endl;
                     resetTextColor();  
@@ -221,7 +226,7 @@ void displayMenu() {
                     cout << "\n\t\t\t\t\t===========================================" << endl;
                     cout << "\t\t\t\t\t                Salads Menu:" << endl;
                     for (const auto& item : menu["salads"]) {
-                        cout << "\t\t\t\t             "<<item.id << ". " << item.name << " - $" << item.price << endl;
+                        cout << "\t\t\t\t             "<<item.id << ". " << item.name << " - P" << item.price << endl;
                     }
                     cout << "\t\t\t\t\t===========================================" << endl;
                     resetTextColor();  
@@ -231,7 +236,7 @@ void displayMenu() {
                     cout << "\n\t\t\t\t\t===========================================" << endl;
                     cout << "\t\t\t\t\t                Drinks Menu:" << endl;
                     for (const auto& item : menu["drinks"]) {
-                        cout << "\t\t\t\t\t           "<<item.id << ". " << item.name << " - $" << item.price << endl;
+                        cout << "\t\t\t\t\t           "<<item.id << ". " << item.name << " - P" << item.price << endl;
                     }
                     cout << "\t\t\t\t\t===========================================" << endl;
                     resetTextColor();  
@@ -241,7 +246,7 @@ void displayMenu() {
                     cout << "\n\t\t\t\t\t===========================================" << endl;
                     cout << "\t\t\t\t\t         Desserts and snacks Menu:" << endl;
                     for (const auto& item : menu["desserts"]) {
-                        cout << "\t\t\t\t              "<< item.id << ". " << item.name << " - $" << item.price << endl;
+                        cout << "\t\t\t\t              "<< item.id << ". " << item.name << " - P" << item.price << endl;
                     }
                     cout << "\t\t\t\t\t===========================================" << endl;
                     resetTextColor();                   
@@ -269,7 +274,7 @@ void displayMenu() {
 
 void registerUser() {
         setTextColor(6);
-        cout << "\n\t\t\t\t-----------REGISTER NEW USER-----------\n" << endl;
+        cout << "\n\t\t\t\t  -------------REGISTER NEW USER-------------\n" << endl;
         resetTextColor();
     while (true) {
         string username;
@@ -294,9 +299,9 @@ void registerUser() {
 
         while (password.length() < 8) {
             setTextColor(12);
-            cout << "\n\t\t\t\t    ===========================================" << endl;
-            cout << "\t\t\t\t    Password must be at least 8 characters long" << endl;
-            cout << "\t\t\t\t    ===========================================\n" << endl;
+            cout << "\n\t\t\t\t  ===========================================" << endl;
+            cout << "\t\t\t\t  Password must be at least 8 characters long" << endl;
+            cout << "\t\t\t\t  ===========================================\n" << endl;
             resetTextColor();
             cout << "Password (must be 8 characters long): ";
             cin >> password;
@@ -304,9 +309,9 @@ void registerUser() {
 
         if (user_accounts.find(username) != user_accounts.end()) {
             setTextColor(12);
-            cout << "\n\t\t\t======================================================\n";
-            cout << "\t\t\tUsername already exists. Please choose a different one\n";
-            cout << "\t\t\t======================================================\n\n";
+            cout << "\n\t\t\t    ======================================================\n";
+            cout << "\t\t\t    Username already exists. Please choose a different one\n";
+            cout << "\t\t\t    ======================================================\n\n";
             resetTextColor();
             break;
         }
@@ -315,9 +320,9 @@ void registerUser() {
         cin >> phoneNumber;
         while (phoneNumber.length() != 11 || !all_of(phoneNumber.begin(), phoneNumber.end(), ::isdigit)) {
             setTextColor(12);
-            cout << "\n\t\t\t\t  ============================================" << endl;
-            cout << "\t\t\t\t   Phone number must be exactly 11 digits long" << endl;
-            cout << "\t\t\t\t   ============================================\n" << endl;
+            cout << "\n\t\t\t\t  ===========================================" << endl;
+            cout << "\t\t\t\t  Phone number must be exactly 11 digits long" << endl;
+            cout << "\t\t\t\t  ===========================================\n" << endl;
             resetTextColor();
             cout << "Enter your phone number (must be 11 digits): ";
             cin >> phoneNumber;
@@ -345,7 +350,7 @@ void registerUser() {
 void userlogin() {
     while (true) {
         setTextColor(6);
-        cout << "\n\t\t\t\t       -----------USER LOGIN-----------\n" << endl;
+        cout << "\n\t\t\t\t        -----------USER LOGIN---------\n" << endl;
         resetTextColor();
         string username;
         string password;
@@ -366,14 +371,18 @@ void userlogin() {
 
         if (user_accounts[username].password != password) {
             setTextColor(12);
-            cout << "\n\t\t\t\t  ===========================================" << endl;
+            cout << "\n\t\t\t\t   ==========================================" << endl;
             cout << "\t\t\t\t      Incorrect password. Please try again" << endl;
             cout << "\t\t\t\t   ==========================================\n" << endl;
             resetTextColor();
             break;
         }
-        
-        cout << "Login succesful!" <<endl;
+
+        setTextColor(2);
+        cout << "\n\t\t\t\t\t-------------------------------" << endl;
+        cout << "\t\t\t\t\t        Login succesful!" << endl;
+        cout << "\t\t\t\t\t-------------------------------\n" << endl;
+        resetTextColor();
         user_menu(username);
         break;
     }
@@ -386,7 +395,7 @@ void user_menu(const string& username) {
     while (choice != 6) {
         setTextColor(6);
         cout << "\n===================================================" << endl;
-        cout << "       Logged in as " << username << " -- Balance: P " << user_accounts[username].balance << endl;
+        cout << "        Logged in as " << username << " -- Balance: P " << user_accounts[username].balance << endl;
         cout << "===================================================\n" << endl;
         resetTextColor();
         cout << "1. Add to cart" << endl;
@@ -451,12 +460,17 @@ void addUserCart (const string& username) {
     int categoryIndex = 1;
     map<int, string> categoryMap;
     cout << endl;
+
+    setTextColor(6);
+    cout << "\n\t\t\t\t                   CATEGORIES";
+    cout << "\n\t\t\t\t    ========================================" << endl;
     for (const auto& category : menu) {
-        cout << categoryIndex << ". " << category.first << endl;
+        cout << "\t\t\t\t    " << categoryIndex << ". " << category.first << endl;
         categoryMap[categoryIndex] = category.first;
         categoryIndex++;
     }
-
+    cout << "\t\t\t\t    ========================================" << endl;
+    resetTextColor();
     try {
     cout << "\nPlease select a category: ";
     int ctgChoice;
@@ -480,7 +494,8 @@ void addUserCart (const string& username) {
 
     
     cout << endl;
-    setTextColor(12);
+    setTextColor(6);
+    cout << "\n\t\t\t\t                Menu for " << selectedCategory;
     cout << "\n\t\t\t\t    ========================================" << endl;
     for (const auto& item : selectedCategoryitems) {
         cout << "\t\t\t\t    " << item.id << ". " << item.name << " - P" << item.price << endl;
@@ -508,9 +523,9 @@ void addUserCart (const string& username) {
 
     if (it->quantity == 0) {
         setTextColor(12);
-        cout << "\n\t\t\t\t    ==============================================" << endl;
-        cout << "\t\t\t\t      Item is out of stock and cannot be ordered" << endl;
-        cout << "\t\t\t\t    ==============================================\n" << endl;
+        cout << "\n\t\t\t\t ==============================================" << endl;
+        cout << "\t\t\t\t   Item is out of stock and cannot be ordered" << endl;
+        cout << "\t\t\t\t ==============================================\n" << endl;
         resetTextColor();
         return;
     }
@@ -525,9 +540,9 @@ void addUserCart (const string& username) {
             }
         if (quantity <= 0 || quantity > it->quantity) {
             setTextColor(12);
-            cout << "\n\t\t\t\t=======================================================" << endl;
-            cout << "\t\t\t\t Invalid quantity entered! " << it->quantity << " stocks left for " << it->name << "!" << endl;
-            cout << "\t\t\t\t=======================================================\n" << endl;
+            cout << "\n\t\t\t  =====================================================================" << endl;
+            cout << "\t\t\t   Invalid quantity entered! " << it->quantity << " stocks left for " << it->name << "!" << endl;
+            cout << "\t\t\t  =====================================================================\n" << endl;
             resetTextColor();
 
         }
@@ -578,7 +593,7 @@ void editUserCart(const string& username) {
 
     if (itemId < 1 || itemId > user_accounts[username].cart.getUserCart().size()) {
         setTextColor(12);
-        cout << "\n\t\t\t\t  ==============================================" << endl;
+        cout << "\n\t\t\t\t    ==============================================" << endl;
         cout << "\t\t\t\t    Invalid item index. Please enter a valid index" << endl;
         cout << "\t\t\t\t    ==============================================\n" << endl;
         resetTextColor();
@@ -608,9 +623,9 @@ void editUserCart(const string& username) {
 
         if (newQuantity <= 0) {
             setTextColor(12);
-            cout << "\n\t\t\t  =======================================================" << endl;
-            cout << "\t\t\t  Invalid quantity entered. Please enter a positive value" << endl;
-            cout << "\t\t\t  =======================================================\n" << endl;
+            cout << "\n\t\t\t\t  =======================================================" << endl;
+            cout << "\t\t\t\t  Invalid quantity entered. Please enter a positive value" << endl;
+            cout << "\t\t\t\t  =======================================================\n" << endl;
             resetTextColor();
             return;
         }
@@ -642,9 +657,9 @@ void editUserCart(const string& username) {
     }
     } catch (const invalid_argument& e) {
         setTextColor(12);
-        cout << "\n\t\t\t\t  ==============================================" << endl;
-        cout << "\t\t\t\t            "<< e.what() << endl;
-        cout << "\t\t\t\t  ==============================================\n" << endl;
+        cout << "\n\t\t\t\t    ==============================================" << endl;
+        cout << "\t\t\t\t              "<< e.what() << endl;
+        cout << "\t\t\t\t    ==============================================\n" << endl;
         resetTextColor();
         }
 }
@@ -695,6 +710,7 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
     cin >> paymentChoice;
     if (cin.fail()) {
         clearInputBuffer();
+        totalCost = 0.0;
         throw invalid_argument("Please Input a valid number!");
     }
 
@@ -721,6 +737,7 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
             if (cin.fail()) {
                 clearInputBuffer();
                 throw invalid_argument("Please Input a valid number!");
+                totalCost = 0.0;
             }
 
             if (cashAmount < totalCost) {
@@ -755,6 +772,7 @@ void proceedOrder(const string& username, int& paymentChoice, float& totalCost, 
         cout << "\t\t\t\t            "<< e.what() << endl;
         cout << "\t\t\t\t  ==============================================\n" << endl;
         resetTextColor();
+        totalCost = 0.0;
         }
     
 }
@@ -796,15 +814,20 @@ void displayOrderSummary(const string& username, int& paymentChoice, float& tota
     setTextColor(6);
     cout << "               ===========================================================================================\n\n\n";
     resetTextColor();
+    setTextColor(2);
+    cout << "\t\t\t\t-----------------------------------------------------------------" << endl;
+    cout << "\t\t\t\tThank you for using EZbyte! Your meal will be processed shortly!" << endl;
+    cout << "\t\t\t\t----------------------------------------------------------------" << endl;
+    resetTextColor();
     user_accounts[username].cart.clearCart();
 }
 
 void top_up (const string& username) {
     try {
         setTextColor(6);
-        cout << "\n\t\t\t\t=========================================" << endl;
-        cout << "\t\t\t\t          Top-up Ezbyte Wallet" << endl;
-        cout << "\t\t\t\t=========================================\n" << endl;
+        cout << "\n\t\t\t\t   =========================================" << endl;
+        cout << "\t\t\t\t             Top-up Ezbyte Wallet" << endl;
+        cout << "\t\t\t\t   =========================================\n" << endl;
         resetTextColor();
         int amount;
         cout << "Enter the amount to top up: ";
@@ -840,11 +863,14 @@ void top_up (const string& username) {
     } 
 }
 
+
 void check_credentials (const string& username) {
     setTextColor(2);
     cout << "\n\t\t\t\t------------------- User Information -------------------" << endl;
     cout << "\t\t\t\tUsername: " << username << endl;
     cout << "\t\t\t\tPassword: " << user_accounts[username].password << endl;
+    cout << "\t\t\t\tPhone Number: " << user_accounts[username].phoneNumber << endl;
+    cout << "\t\t\t\tAddress: " << user_accounts[username].address << endl;
 
     string cartContent;
     bool isEmpty = user_accounts[username].cart.viewCart(cartContent);
@@ -922,7 +948,7 @@ public:
                         item.quantity = newStock;
                         setTextColor(2);
                         cout << "\n\t\t\t\t------------------------------------------------------" << endl;
-                        cout << "\t\t\t\t            Stocks for " << item.name << " updated to " << newStock << endl;
+                        cout << "\t\t\t\t        Stocks for " << item.name << " updated to " << newStock << endl;
                         cout << "\t\t\t\t------------------------------------------------------\n" << endl;
                         resetTextColor();
                         return;
@@ -944,7 +970,7 @@ public:
                         item.price = newPrice;
                         setTextColor(2);
                         cout << "\n\t\t\t\t------------------------------------------------------" << endl;
-                        cout << "\t\t\t\t          Price for " << item.name << " updated to " << newPrice << " pesos" << endl;
+                        cout << "\t\t\t\t   Price for " << item.name << " updated to " << newPrice << " pesos" << endl;
                         cout << "\t\t\t\t------------------------------------------------------\n" << endl;
                         resetTextColor();
                         return;
@@ -965,7 +991,7 @@ public:
                     if (item.id == index) {
                         setTextColor(2);
                         cout << "\n\t\t\t\t------------------------------------------------------" << endl;
-                        cout << "\t\t\t\t          Name for " << item.name << " updated to " << newName << "." << endl;
+                        cout << "\t\t\t\t      Name for " << item.name << " updated to " << newName << "." << endl;
                         cout << "\t\t\t\t------------------------------------------------------\n" << endl;
                         resetTextColor();
                         return;
@@ -1173,33 +1199,33 @@ int main () {
             displayMenu();
         } else if (choice == 5) {
             setTextColor(6);
-            cout << "               ===========================================================================================" << endl;
-            cout << "               ||                                                                                       ||" << endl;
-            cout << "               ||                   _____ _                 _     __   __          _                    ||" << endl;
-            cout << "               ||                  |_   _| |__   __ _ _ __ | | __ \\ \\ / /__  _   _| |                   ||" << endl;
-            cout << "               ||                    | | | '_ \\ / _` | '_ \\| |/ /  \\ V / _ \\| | | | |                   ||" << endl;
-            cout << "               ||                    | | | | | | (_| | | | |   <    | | (_) | |_| |_|                   ||" << endl;
-            cout << "               ||                    |_| |_| |_|\\__,_|_| |_|_|\\_\\   |_|\\___/ \\__,_(_)                   ||" << endl;
-            cout << "               ||                                                                                       ||" << endl;
-            cout << "               ||                       for using the EZByte Food Ordering System!                      ||" << endl;
-            cout << "               ||                 -----------------------------------------------------                 ||" << endl;
-            cout << "               ||                                                                                       ||" << endl;
-            cout << "               ||                                                                                       ||" << endl;
-            cout << "               ===========================================================================================" << endl;
+            cout << "        ===========================================================================================" << endl;
+            cout << "        ||                                                                                       ||" << endl;
+            cout << "        ||                   _____ _                 _     __   __          _                    ||" << endl;
+            cout << "        ||                  |_   _| |__   __ _ _ __ | | __ \\ \\ / /__  _   _| |                   ||" << endl;
+            cout << "        ||                    | | | '_ \\ / _` | '_ \\| |/ /  \\ V / _ \\| | | | |                   ||" << endl;
+            cout << "        ||                    | | | | | | (_| | | | |   <    | | (_) | |_| |_|                   ||" << endl;
+            cout << "        ||                    |_| |_| |_|\\__,_|_| |_|_|\\_\\   |_|\\___/ \\__,_(_)                   ||" << endl;
+            cout << "        ||                                                                                       ||" << endl;
+            cout << "        ||                       for using the EZByte Food Ordering System!                      ||" << endl;
+            cout << "        ||                 -----------------------------------------------------                 ||" << endl;
+            cout << "        ||                                                                                       ||" << endl;
+            cout << "        ||                                                                                       ||" << endl;
+            cout << "        ===========================================================================================" << endl;
             resetTextColor();
             exit(1);
         } else {
             setTextColor(12);
-            cout << "\n\t\t\t\t  ==============================================" << endl;
-            cout << "\t\t\t\t            Please input a valid option"<< endl;
-            cout << "\t\t\t\t  ==============================================\n" << endl;
+            cout << "\n\t\t\t\t==============================================" << endl;
+            cout << "\t\t\t\t          Please input a valid option"<< endl;
+            cout << "\t\t\t\t==============================================\n" << endl;
             resetTextColor();
             }
         } catch (const invalid_argument& e) {
         setTextColor(12);
-        cout << "\n\t\t\t\t  ==============================================" << endl;
-        cout << "\t\t\t\t            "<< e.what() << endl;
-        cout << "\t\t\t\t  ==============================================\n" << endl;
+        cout << "\n\t\t\t\t==============================================" << endl;
+        cout << "\t\t\t\t          "<< e.what() << endl;
+        cout << "\t\t\t\t==============================================\n" << endl;
         resetTextColor();
         } 
     }
